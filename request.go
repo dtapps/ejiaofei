@@ -1,12 +1,13 @@
 package ejiaofei
 
 import (
+	"context"
 	"fmt"
 	"go.dtapp.net/gomd5"
 	"go.dtapp.net/gorequest"
 )
 
-func (c *Client) request(url string, params map[string]interface{}, method string) (gorequest.Response, error) {
+func (c *Client) request(ctx context.Context, url string, params map[string]interface{}, method string) (gorequest.Response, error) {
 
 	// 公共参数
 	params["userid"] = c.getUserId()
@@ -38,7 +39,7 @@ func (c *Client) request(url string, params map[string]interface{}, method strin
 
 	// 日志
 	if c.config.PgsqlDb != nil {
-		go c.log.GormMiddlewareXml(request)
+		go c.log.GormMiddlewareXml(ctx, request, Version)
 	}
 	if c.config.MongoDb != nil {
 		go c.log.MongoMiddlewareXml(request)
