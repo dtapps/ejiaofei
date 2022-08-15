@@ -17,7 +17,7 @@ func (c *Client) request(ctx context.Context, url string, params map[string]inte
 	params["userkey"] = gomd5.ToUpper(fmt.Sprintf("%s%s", c.signStr, c.getKey()))
 
 	// 创建请求
-	client := c.client
+	client := c.requestClient
 
 	// 设置请求地址
 	client.SetUri(url)
@@ -38,11 +38,8 @@ func (c *Client) request(ctx context.Context, url string, params map[string]inte
 	}
 
 	// 日志
-	if c.config.PgsqlDb != nil {
-		go c.log.GormMiddlewareXml(ctx, request, Version)
-	}
-	if c.config.MongoDb != nil {
-		go c.log.MongoMiddlewareXml(ctx, request, Version)
+	if c.config.GormClient.Db != nil {
+		go c.logClient.GormMiddlewareXml(ctx, request, Version)
 	}
 
 	return request, err
