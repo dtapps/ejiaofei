@@ -10,11 +10,11 @@ import (
 func (c *Client) request(ctx context.Context, url string, params map[string]interface{}, method string) (gorequest.Response, error) {
 
 	// 公共参数
-	params["userid"] = c.getUserId()
-	params["pwd"] = c.getPwd()
+	params["userid"] = c.GetUserId()
+	params["pwd"] = c.GetPwd()
 
 	// 签名
-	params["userkey"] = gomd5.ToUpper(fmt.Sprintf("%s%s", c.signStr, c.getKey()))
+	params["userkey"] = gomd5.ToUpper(fmt.Sprintf("%s%s", c.config.signStr, c.GetKey()))
 
 	// 创建请求
 	client := c.requestClient
@@ -38,8 +38,11 @@ func (c *Client) request(ctx context.Context, url string, params map[string]inte
 	}
 
 	// 日志
-	if c.config.GormClient.Db != nil {
-		go c.logClient.GormMiddlewareXml(ctx, request, Version)
+	if c.log.gorm {
+		go c.log.logGormClient.GormMiddlewareXml(ctx, request, Version)
+	}
+	if c.log.mongo {
+		go c.log.logMongoClient.MongoMiddlewareXml(ctx, request, Version)
 	}
 
 	return request, err
