@@ -1,11 +1,7 @@
 package ejiaofei
 
 const (
-	apiUrl = "http://api.ejiaofei.net:11140"
-)
-
-const (
+	apiUrl   = "http://api.ejiaofei.net:11140"
 	logTable = "ejiaofei"
+	Version  = "1.0.6"
 )
-
-const Version = "1.0.5"
