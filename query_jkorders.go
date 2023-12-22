@@ -3,7 +3,6 @@ package ejiaofei
 import (
 	"context"
 	"encoding/xml"
-	"fmt"
 	"go.dtapp.net/gorequest"
 	"net/http"
 )
@@ -26,26 +25,27 @@ type QueryJkOrdersResult struct {
 	Result QueryJkOrdersResponse // 结果
 	Body   []byte                // 内容
 	Http   gorequest.Response    // 请求
-	Err    error                 // 错误
 }
 
-func newQueryJkOrdersResult(result QueryJkOrdersResponse, body []byte, http gorequest.Response, err error) *QueryJkOrdersResult {
-	return &QueryJkOrdersResult{Result: result, Body: body, Http: http, Err: err}
+func newQueryJkOrdersResult(result QueryJkOrdersResponse, body []byte, http gorequest.Response) *QueryJkOrdersResult {
+	return &QueryJkOrdersResult{Result: result, Body: body, Http: http}
 }
 
 // QueryJkOrders 通用查询接口
-// orderid 用户提交的订单号 用户提交的订单号，最长32位（用户保证其唯一性）
-func (c *Client) QueryJkOrders(ctx context.Context, orderId string) *QueryJkOrdersResult {
+// orderid = 用户提交的订单号 用户提交的订单号，最长32位（用户保证其唯一性）
+func (c *Client) QueryJkOrders(ctx context.Context, orderid string, notMustParams ...gorequest.Params) (*QueryJkOrdersResult, error) {
 	// 参数
-	param := gorequest.NewParams()
-	param.Set("orderid", orderId)
-	params := gorequest.NewParamsWith(param)
-	// 签名
-	c.config.signStr = fmt.Sprintf("userid%vpwd%vorderid%v", c.GetUserId(), c.GetPwd(), orderId)
+	params := gorequest.NewParamsWith(notMustParams...)
+	params.Set("userid", c.GetUserId()) // 用户编号
+	params.Set("pwd", c.GetPwd())       // 加密密码
+	params.Set("orderid", orderid)      // 用户提交的订单号 用户提交的订单号，最长32位（用户保证其唯一性）
 	// 请求
-	request, err := c.request(ctx, apiUrl+"/query_jkorders.do", params, http.MethodGet)
+	request, err := c.requestXml(ctx, apiUrl+"/query_jkorders.do", params, http.MethodGet)
+	if err != nil {
+		return newQueryJkOrdersResult(QueryJkOrdersResponse{}, request.ResponseBody, request), err
+	}
 	// 定义
 	var response QueryJkOrdersResponse
 	err = xml.Unmarshal(request.ResponseBody, &response)
-	return newQueryJkOrdersResult(response, request.ResponseBody, request, err)
+	return newQueryJkOrdersResult(response, request.ResponseBody, request), err
 }

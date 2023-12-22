@@ -3,7 +3,6 @@ package ejiaofei
 import (
 	"context"
 	"encoding/xml"
-	"fmt"
 	"go.dtapp.net/gorequest"
 	"net/http"
 )
@@ -11,8 +10,8 @@ import (
 type TxChOngZhiParams struct {
 	OrderID   string `json:"orderid"`   // 用户提交的订单号 用户提交的订单号，最长32位（用户保证其唯一性）
 	Account   string `json:"account"`   // QQ号	需要充值的QQ号
-	ProductID int    `json:"productid"` // 产品id
-	Amount    int    `json:"amount"`    // 购买数量
+	ProductID int64  `json:"productid"` // 产品id
+	Amount    int64  `json:"amount"`    // 购买数量
 	Ip        string `json:"ip"`        // 充值QQ号ip
 	Times     string `json:"times"`     // 时间戳 格式：yyyyMMddhhmmss
 }
@@ -23,9 +22,9 @@ type TxChOngZhiResponse struct {
 	PorderID  string   `xml:"Porderid"`  // 鼎信平台订单号
 	OrderID   string   `xml:"orderid"`   // 用户订单号
 	Account   string   `xml:"account"`   // 需要充值的QQ号
-	ProductID int      `xml:"productid"` // 充值产品id
-	Amount    int      `xml:"amount"`    // 购买数量
-	State     int      `xml:"state"`     // 订单状态
+	ProductID int64    `xml:"productid"` // 充值产品id
+	Amount    int64    `xml:"amount"`    // 购买数量
+	State     int64    `xml:"state"`     // 订单状态
 	StartTime string   `xml:"starttime"` // 开始时间
 	EndTime   string   `xml:"endtime"`   // 结束时间
 	Error     string   `xml:"error"`     // 错误提示
@@ -35,23 +34,34 @@ type TxChOngZhiResult struct {
 	Result TxChOngZhiResponse // 结果
 	Body   []byte             // 内容
 	Http   gorequest.Response // 请求
-	Err    error              // 错误
 }
 
-func newTxChOngZhiResult(result TxChOngZhiResponse, body []byte, http gorequest.Response, err error) *TxChOngZhiResult {
-	return &TxChOngZhiResult{Result: result, Body: body, Http: http, Err: err}
+func newTxChOngZhiResult(result TxChOngZhiResponse, body []byte, http gorequest.Response) *TxChOngZhiResult {
+	return &TxChOngZhiResult{Result: result, Body: body, Http: http}
 }
 
 // TxChOngZhi 流量充值接口
-func (c *Client) TxChOngZhi(ctx context.Context, notMustParams ...gorequest.Params) *TxChOngZhiResult {
+// orderid = 用户提交的订单号 用户提交的订单号，最长32位（用户保证其唯一性）
+// account = QQ号 需要充值的QQ号
+// productid = 产品id 可以通过2.5查询
+// amount = 购买数量
+// ip = 可以为空
+func (c *Client) TxChOngZhi(ctx context.Context, orderid string, account string, productid int64, amount int64, notMustParams ...gorequest.Params) (*TxChOngZhiResult, error) {
 	// 参数
 	params := gorequest.NewParamsWith(notMustParams...)
-	// 签名
-	c.config.signStr = fmt.Sprintf("userid%vpwd%vorderid%vaccount%vproductid%vamount%vip%vtimes%v", c.GetUserId(), c.GetPwd(), params["orderid"], params["account"], params["productid"], params["amount"], params["ip"], params["times"])
+	params.Set("userid", c.GetUserId()) // 用户编号
+	params.Set("pwd", c.GetPwd())       // 加密密码
+	params.Set("orderid", orderid)      // 用户提交的订单号 用户提交的订单号，最长32位（用户保证其唯一性）
+	params.Set("account", account)      // QQ号 需要充值的QQ号
+	params.Set("productid", productid)  // 产品id 可以通过2.5查询
+	params.Set("amount", amount)        // 购买数量
 	// 请求
-	request, err := c.request(ctx, apiUrl+"/txchongzhi.do", params, http.MethodGet)
+	request, err := c.requestXml(ctx, apiUrl+"/txchongzhi.do", params, http.MethodGet)
+	if err != nil {
+		return newTxChOngZhiResult(TxChOngZhiResponse{}, request.ResponseBody, request), err
+	}
 	// 定义
 	var response TxChOngZhiResponse
 	err = xml.Unmarshal(request.ResponseBody, &response)
-	return newTxChOngZhiResult(response, request.ResponseBody, request, err)
+	return newTxChOngZhiResult(response, request.ResponseBody, request), err
 }
