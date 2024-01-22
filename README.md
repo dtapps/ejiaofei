@@ -1,5 +1,5 @@
 <h1>
-<a href="https://www.dtapp.net/">Golang ejiaofei</a>
+<a href="https://www.dtapp.net/">Golang</a>
 </h1>
 
 📦 Golang ejiaofei
@@ -13,5 +13,5 @@
 #### 安装
 
 ```shell
-go get -v -u go.dtapp.net/ejiaofei@v1.0.10
+go get -v -u go.dtapp.net/ejiaofei@v1.0.11
 ```
