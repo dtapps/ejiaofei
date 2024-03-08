@@ -22,9 +22,6 @@ func (c *Client) requestXml(ctx context.Context, url string, param gorequest.Par
 	// 设置格式
 	client.SetContentTypeForm()
 
-	// 设置用户代理
-	client.SetUserAgent(gorequest.GetRandomUserAgentSystem())
-
 	// 设置参数
 	client.SetParams(param)
 
@@ -37,9 +34,6 @@ func (c *Client) requestXml(ctx context.Context, url string, param gorequest.Par
 	// 记录日志
 	if c.gormLog.status {
 		go c.gormLog.client.MiddlewareXml(ctx, request)
-	}
-	if c.mongoLog.status {
-		go c.mongoLog.client.MiddlewareXml(ctx, request)
 	}
 
 	return request, err
