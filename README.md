@@ -2,7 +2,7 @@
 <a href="https://www.dtapp.net/">Golang</a>
 </h1>
 
-📦 Golang ejiaofei
+📦 Golang 易购费
 
 [comment]: <> (go)
 [![godoc](https://pkg.go.dev/badge/go.dtapp.net/ejiaofei?status.svg)](https://pkg.go.dev/go.dtapp.net/ejiaofei)
@@ -13,5 +13,5 @@
 #### 安装
 
 ```shell
-go get -v -u go.dtapp.net/ejiaofei@v1.0.12
+go get -v -u go.dtapp.net/ejiaofei@v1.0.13
 ```
