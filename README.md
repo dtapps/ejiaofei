@@ -2,7 +2,7 @@
 <a href="https://www.dtapp.net/">Golang</a>
 </h1>
 
-📦 Golang 易购费
+📦 Golang 易缴费
 
 [comment]: <> (go)
 [![godoc](https://pkg.go.dev/badge/go.dtapp.net/ejiaofei?status.svg)](https://pkg.go.dev/go.dtapp.net/ejiaofei)
