@@ -3,7 +3,7 @@ package ejiaofei
 import "fmt"
 
 const (
-	apiUrl = "http://api.ejiaofei.net:11140"
+	apiUrl = "http://api.ejiaofei.net:11140/"
 )
 
 const (

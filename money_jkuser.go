@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
+	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -26,17 +27,28 @@ func newMoneyJkUserResult(result MoneyJkUserResponse, body []byte, http goreques
 
 // MoneyJkUser 用户余额查询
 func (c *Client) MoneyJkUser(ctx context.Context, notMustParams ...gorequest.Params) (*MoneyJkUserResult, error) {
+
+	// OpenTelemetry链路追踪
+	ctx = c.TraceStartSpan(ctx, "money_jkuser")
+	defer c.TraceEndSpan()
+
 	// 参数
 	params := gorequest.NewParamsWith(notMustParams...)
 	params.Set("userid", c.GetUserId()) // 用户编号
 	params.Set("pwd", c.GetPwd())       // 加密密码
+
 	// 请求
-	request, err := c.requestXml(ctx, apiUrl+"/money_jkuser.do", params, http.MethodGet)
+	request, err := c.requestXml(ctx, "money_jkuser.do", params, http.MethodGet)
 	if err != nil {
 		return newMoneyJkUserResult(MoneyJkUserResponse{}, request.ResponseBody, request), err
 	}
+
 	// 定义
 	var response MoneyJkUserResponse
 	err = xml.Unmarshal(request.ResponseBody, &response)
+	if err != nil {
+		c.TraceRecordError(err)
+		c.TraceSetStatus(codes.Error, err.Error())
+	}
 	return newMoneyJkUserResult(response, request.ResponseBody, request), err
 }

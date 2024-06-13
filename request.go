@@ -2,7 +2,10 @@ package ejiaofei
 
 import (
 	"context"
+	"go.dtapp.net/gojson"
 	"go.dtapp.net/gorequest"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 func (c *Client) requestXml(ctx context.Context, url string, param gorequest.Params, method string) (gorequest.Response, error) {
@@ -10,30 +13,32 @@ func (c *Client) requestXml(ctx context.Context, url string, param gorequest.Par
 	// 签名
 	param.Set("userkey", c.xmlSign(url, param))
 
-	// 创建请求
-	client := gorequest.NewHttp()
+	// 请求地址
+	uri := apiUrl + url
 
 	// 设置请求地址
-	client.SetUri(url)
+	c.httpClient.SetUri(url)
 
 	// 设置方式
-	client.SetMethod(method)
+	c.httpClient.SetMethod(method)
 
 	// 设置格式
-	client.SetContentTypeForm()
+	c.httpClient.SetContentTypeForm()
 
 	// 设置参数
-	client.SetParams(param)
+	c.httpClient.SetParams(param)
+
+	// OpenTelemetry链路追踪
+	c.TraceSetAttributes(attribute.String("http.url", uri))
+	c.TraceSetAttributes(attribute.String("http.method", method))
+	c.TraceSetAttributes(attribute.String("http.params", gojson.JsonEncodeNoError(param)))
 
 	// 发起请求
-	request, err := client.Request(ctx)
+	request, err := c.httpClient.Request(ctx)
 	if err != nil {
+		c.TraceRecordError(err)
+		c.TraceSetStatus(codes.Error, err.Error())
 		return gorequest.Response{}, err
-	}
-
-	// 记录日志
-	if c.gormLog.status {
-		go c.gormLog.client.MiddlewareXml(ctx, request)
 	}
 
 	return request, err
@@ -44,30 +49,32 @@ func (c *Client) requestJson(ctx context.Context, url string, param gorequest.Pa
 	// 签名
 	param.Set("sign", c.jsonSign(param))
 
-	// 创建请求
-	client := gorequest.NewHttp()
+	// 请求地址
+	uri := apiUrl + url
 
 	// 设置请求地址
-	client.SetUri(url)
+	c.httpClient.SetUri(uri)
 
 	// 设置方式
-	client.SetMethod(method)
+	c.httpClient.SetMethod(method)
 
 	// 设置格式
-	client.SetContentTypeForm()
+	c.httpClient.SetContentTypeForm()
 
 	// 设置参数
-	client.SetParams(param)
+	c.httpClient.SetParams(param)
+
+	// OpenTelemetry链路追踪
+	c.TraceSetAttributes(attribute.String("http.url", uri))
+	c.TraceSetAttributes(attribute.String("http.method", method))
+	c.TraceSetAttributes(attribute.String("http.params", gojson.JsonEncodeNoError(param)))
 
 	// 发起请求
-	request, err := client.Request(ctx)
+	request, err := c.httpClient.Request(ctx)
 	if err != nil {
+		c.TraceRecordError(err)
+		c.TraceSetStatus(codes.Error, err.Error())
 		return gorequest.Response{}, err
-	}
-
-	// 记录日志
-	if c.gormLog.status {
-		go c.gormLog.client.Middleware(ctx, request)
 	}
 
 	return request, err

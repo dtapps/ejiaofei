@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
+	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -47,6 +48,11 @@ func newTxChOngZhiResult(result TxChOngZhiResponse, body []byte, http gorequest.
 // amount = 购买数量
 // ip = 可以为空
 func (c *Client) TxChOngZhi(ctx context.Context, orderid string, account string, productid int64, amount int64, notMustParams ...gorequest.Params) (*TxChOngZhiResult, error) {
+
+	// OpenTelemetry链路追踪
+	ctx = c.TraceStartSpan(ctx, "txchongzhi")
+	defer c.TraceEndSpan()
+
 	// 参数
 	params := gorequest.NewParamsWith(notMustParams...)
 	params.Set("userid", c.GetUserId()) // 用户编号
@@ -55,13 +61,19 @@ func (c *Client) TxChOngZhi(ctx context.Context, orderid string, account string,
 	params.Set("account", account)      // QQ号 需要充值的QQ号
 	params.Set("productid", productid)  // 产品id 可以通过2.5查询
 	params.Set("amount", amount)        // 购买数量
+
 	// 请求
-	request, err := c.requestXml(ctx, apiUrl+"/txchongzhi.do", params, http.MethodGet)
+	request, err := c.requestXml(ctx, "txchongzhi.do", params, http.MethodGet)
 	if err != nil {
 		return newTxChOngZhiResult(TxChOngZhiResponse{}, request.ResponseBody, request), err
 	}
+
 	// 定义
 	var response TxChOngZhiResponse
 	err = xml.Unmarshal(request.ResponseBody, &response)
+	if err != nil {
+		c.TraceRecordError(err)
+		c.TraceSetStatus(codes.Error, err.Error())
+	}
 	return newTxChOngZhiResult(response, request.ResponseBody, request), err
 }

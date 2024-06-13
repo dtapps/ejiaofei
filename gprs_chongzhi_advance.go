@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
+	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -52,6 +53,11 @@ func newGprsChOngZhiAdvanceResult(result GprsChOngZhiAdvanceResponse, body []byt
 // effecttime = 生效日期	0 即时生效，1次日生效，2 次月生效
 // validity = 流量有效期	传入月数，0为当月有效
 func (c *Client) GprsChOngZhiAdvance(ctx context.Context, orderid string, account string, gprs int64, area int64, effectTime int64, validity int64, notMustParams ...gorequest.Params) (*GprsChOngZhiAdvanceResult, error) {
+
+	// OpenTelemetry链路追踪
+	ctx = c.TraceStartSpan(ctx, "gprsChongzhiAdvance")
+	defer c.TraceEndSpan()
+
 	// 参数
 	params := gorequest.NewParamsWith(notMustParams...)
 	params.Set("userid", c.GetUserId())  // 用户编号
@@ -62,13 +68,19 @@ func (c *Client) GprsChOngZhiAdvance(ctx context.Context, orderid string, accoun
 	params.Set("area", area)             // 充值流量范围	0 全国流量，1 省内流量
 	params.Set("effecttime", effectTime) // 生效日期	0 即时生效，1次日生效，2 次月生效
 	params.Set("validity", validity)     // 流量有效期	传入月数，0为当月有效
+
 	// 请求
-	request, err := c.requestXml(ctx, apiUrl+"/gprsChongzhiAdvance.do", params, http.MethodGet)
+	request, err := c.requestXml(ctx, "gprsChongzhiAdvance.do", params, http.MethodGet)
 	if err != nil {
 		return newGprsChOngZhiAdvanceResult(GprsChOngZhiAdvanceResponse{}, request.ResponseBody, request), err
 	}
+
 	// 定义
 	var response GprsChOngZhiAdvanceResponse
 	err = xml.Unmarshal(request.ResponseBody, &response)
+	if err != nil {
+		c.TraceRecordError(err)
+		c.TraceSetStatus(codes.Error, err.Error())
+	}
 	return newGprsChOngZhiAdvanceResult(response, request.ResponseBody, request), err
 }
