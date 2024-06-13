@@ -2,9 +2,7 @@ package ejiaofei
 
 import (
 	"context"
-	"go.dtapp.net/gojson"
 	"go.dtapp.net/gorequest"
-	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -42,18 +40,10 @@ func (c *Client) FindOrder(ctx context.Context, orderID string, notMustParams ..
 	params.Set("appSecret", c.GetPwd()) // 加密密码 由鼎信商务提供
 	params.Set("orderId", orderID)      // 用户提交的订单号  用户提交的订单号，最长32位（用户保证其唯一性）
 
-	// 请求
-	request, err := c.requestJson(ctx, "findOrder.do", params, http.MethodGet)
-	if err != nil {
-		return newFindOrderResult(FindOrderResponse{}, request.ResponseBody, request), err
-	}
-
-	// 定义
+	// 响应
 	var response FindOrderResponse
-	err = gojson.Unmarshal(request.ResponseBody, &response)
-	if err != nil {
-		c.TraceRecordError(err)
-		c.TraceSetStatus(codes.Error, err.Error())
-	}
+
+	// 请求
+	request, err := c.requestJson(ctx, "findOrder.do", params, http.MethodGet, &response)
 	return newFindOrderResult(response, request.ResponseBody, request), err
 }

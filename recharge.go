@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
 	"go.dtapp.net/gotime"
-	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -56,18 +55,10 @@ func (c *Client) Recharge(ctx context.Context, rechargeType int64, orderId strin
 	params.Set("appSecret", c.GetPwd())                   // 加密密码 由鼎信商务提供
 	params.Set("face", face)                              // 充值面值 话费以元为单位，包含10、20、30、50、100、200、300、500 移动联通电信; 加油卡以元为单位，包含50、100、200、500、800、1000、2000; 流量待定
 
-	// 请求
-	request, err := c.requestJson(ctx, "recharge.do", params, http.MethodGet)
-	if err != nil {
-		return newRechargeResult(RechargeResponse{}, request.ResponseBody, request), err
-	}
-
-	// 定义
+	// 响应
 	var response RechargeResponse
-	err = xml.Unmarshal(request.ResponseBody, &response)
-	if err != nil {
-		c.TraceRecordError(err)
-		c.TraceSetStatus(codes.Error, err.Error())
-	}
+
+	// 请求
+	request, err := c.requestJson(ctx, "recharge.do", params, http.MethodGet, &response)
 	return newRechargeResult(response, request.ResponseBody, request), err
 }

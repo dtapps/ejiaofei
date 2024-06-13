@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
-	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -35,18 +34,10 @@ func (c *Client) QueryTxProduct(ctx context.Context, notMustParams ...gorequest.
 	params.Set("userid", c.GetUserId()) // 用户编号
 	params.Set("pwd", c.GetPwd())       // 加密密码
 
-	// 请求
-	request, err := c.requestXml(ctx, "queryTXproduct.do", params, http.MethodGet)
-	if err != nil {
-		return newQueryTxProductResult(QueryTxProductResponse{}, request.ResponseBody, request), err
-	}
-
-	// 定义
+	// 响应
 	var response QueryTxProductResponse
-	err = xml.Unmarshal(request.ResponseBody, &response)
-	if err != nil {
-		c.TraceRecordError(err)
-		c.TraceSetStatus(codes.Error, err.Error())
-	}
+
+	// 请求
+	request, err := c.requestXml(ctx, "queryTXproduct.do", params, http.MethodGet, &response)
 	return newQueryTxProductResult(response, request.ResponseBody, request), err
 }

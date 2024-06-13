@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
-	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -53,18 +52,10 @@ func (c *Client) ChOngZhiJkOrders(ctx context.Context, orderid string, face int6
 	params.Set("account", account)      // 手机号码 需要充值的手机号码
 	params.Set("amount", amount)        // 购买数量 只能为1
 
-	// 请求
-	request, err := c.requestXml(ctx, "chongzhi_jkorders.do", params, http.MethodGet)
-	if err != nil {
-		return newChOngZhiJkOrdersResult(ChOngZhiJkOrdersResponse{}, request.ResponseBody, request), err
-	}
-
-	// 定义
+	// 响应
 	var response ChOngZhiJkOrdersResponse
-	err = xml.Unmarshal(request.ResponseBody, &response)
-	if err != nil {
-		c.TraceRecordError(err)
-		c.TraceSetStatus(codes.Error, err.Error())
-	}
+
+	// 请求
+	request, err := c.requestXml(ctx, "chongzhi_jkorders.do", params, http.MethodGet, &response)
 	return newChOngZhiJkOrdersResult(response, request.ResponseBody, request), err
 }

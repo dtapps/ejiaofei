@@ -1,17 +1,19 @@
 package ejiaofei
 
-func (c *Client) SetStoreId(storeId int64) *Client {
-	c.config.storeId = storeId
+import "go.dtapp.net/gorequest"
+
+func (c *Client) SetUserId(userId string) *Client {
+	c.config.userId = userId
 	return c
 }
 
-func (c *Client) SetAppKey(appKey int64) *Client {
-	c.config.appKey = appKey
+func (c *Client) SetPwd(pwd string) *Client {
+	c.config.pwd = pwd
 	return c
 }
 
-func (c *Client) SetAppSecret(appSecret string) *Client {
-	c.config.appSecret = appSecret
+func (c *Client) SetKey(key string) *Client {
+	c.config.key = key
 	return c
 }
 

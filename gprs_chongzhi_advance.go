@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
-	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -69,18 +68,10 @@ func (c *Client) GprsChOngZhiAdvance(ctx context.Context, orderid string, accoun
 	params.Set("effecttime", effectTime) // 生效日期	0 即时生效，1次日生效，2 次月生效
 	params.Set("validity", validity)     // 流量有效期	传入月数，0为当月有效
 
-	// 请求
-	request, err := c.requestXml(ctx, "gprsChongzhiAdvance.do", params, http.MethodGet)
-	if err != nil {
-		return newGprsChOngZhiAdvanceResult(GprsChOngZhiAdvanceResponse{}, request.ResponseBody, request), err
-	}
-
-	// 定义
+	// 响应
 	var response GprsChOngZhiAdvanceResponse
-	err = xml.Unmarshal(request.ResponseBody, &response)
-	if err != nil {
-		c.TraceRecordError(err)
-		c.TraceSetStatus(codes.Error, err.Error())
-	}
+
+	// 请求
+	request, err := c.requestXml(ctx, "gprsChongzhiAdvance.do", params, http.MethodGet, &response)
 	return newGprsChOngZhiAdvanceResult(response, request.ResponseBody, request), err
 }

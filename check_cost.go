@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
-	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -41,18 +40,10 @@ func (c *Client) CheckCost(ctx context.Context, orderid string, notMustParams ..
 	params.Set("pwd", c.GetPwd())       // 加密密码
 	params.Set("orderid", orderid)      // 用户订单号	用户提交订单号
 
-	// 请求
-	request, err := c.requestXml(ctx, "checkCost.do", params, http.MethodGet)
-	if err != nil {
-		return newCheckCostResult(CheckCostResponse{}, request.ResponseBody, request), err
-	}
-
-	// 定义
+	// 响应
 	var response CheckCostResponse
-	err = xml.Unmarshal(request.ResponseBody, &response)
-	if err != nil {
-		c.TraceRecordError(err)
-		c.TraceSetStatus(codes.Error, err.Error())
-	}
+
+	// 请求
+	request, err := c.requestXml(ctx, "checkCost.do", params, http.MethodGet, &response)
 	return newCheckCostResult(response, request.ResponseBody, request), err
 }

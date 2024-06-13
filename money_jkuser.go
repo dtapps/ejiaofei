@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"go.dtapp.net/gorequest"
-	"go.opentelemetry.io/otel/codes"
 	"net/http"
 )
 
@@ -37,18 +36,10 @@ func (c *Client) MoneyJkUser(ctx context.Context, notMustParams ...gorequest.Par
 	params.Set("userid", c.GetUserId()) // 用户编号
 	params.Set("pwd", c.GetPwd())       // 加密密码
 
-	// 请求
-	request, err := c.requestXml(ctx, "money_jkuser.do", params, http.MethodGet)
-	if err != nil {
-		return newMoneyJkUserResult(MoneyJkUserResponse{}, request.ResponseBody, request), err
-	}
-
-	// 定义
+	// 响应
 	var response MoneyJkUserResponse
-	err = xml.Unmarshal(request.ResponseBody, &response)
-	if err != nil {
-		c.TraceRecordError(err)
-		c.TraceSetStatus(codes.Error, err.Error())
-	}
+
+	// 请求
+	request, err := c.requestXml(ctx, "money_jkuser.do", params, http.MethodGet, &response)
 	return newMoneyJkUserResult(response, request.ResponseBody, request), err
 }
