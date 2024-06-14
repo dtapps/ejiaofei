@@ -2,18 +2,30 @@ package ejiaofei
 
 import "go.dtapp.net/gorequest"
 
-func (c *Client) SetUserId(userId string) *Client {
-	c.config.userId = userId
+func (c *Client) GetUserId() string {
+	return c.config.userId
+}
+
+func (c *Client) SetUserId(v string) *Client {
+	c.config.userId = v
 	return c
 }
 
-func (c *Client) SetPwd(pwd string) *Client {
-	c.config.pwd = pwd
+func (c *Client) GetPwd() string {
+	return c.config.pwd
+}
+
+func (c *Client) SetPwd(v string) *Client {
+	c.config.pwd = v
 	return c
 }
 
-func (c *Client) SetKey(key string) *Client {
-	c.config.key = key
+func (c *Client) GetKey() string {
+	return c.config.key
+}
+
+func (c *Client) SetKey(v string) *Client {
+	c.config.key = v
 	return c
 }
 

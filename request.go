@@ -54,11 +54,11 @@ func (c *Client) requestXml(ctx context.Context, url string, param gorequest.Par
 
 func (c *Client) requestJson(ctx context.Context, url string, param gorequest.Params, method string, response any) (gorequest.Response, error) {
 
-	// 签名
-	param.Set("sign", c.jsonSign(param))
-
 	// 请求地址
 	uri := apiUrl + url
+
+	// 签名
+	param.Set("sign", c.jsonSign(param))
 
 	// 设置请求地址
 	c.httpClient.SetUri(uri)
